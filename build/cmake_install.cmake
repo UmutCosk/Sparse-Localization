@@ -1,4 +1,4 @@
-# Install script for directory: /home/umut/Dokumente/Projekte/Sparse-Localization
+# Install script for directory: /home/umut/Documents/Projekte/Sparse-Localization
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/umut/Dokumente/Projekte/Sparse-Localization/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/umut/Documents/Projekte/Sparse-Localization/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -102,6 +102,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
     }
     //Calculate minimum distance between current observation and landmarks
     int index_nearest_landmark = std::min_element(temp_distances.begin(), temp_distances.end()) - temp_distances.begin();
+
     //Set id of current observation to id of closest landmark
     observations[o].id = predicted[index_nearest_landmark].id;
   }
@@ -127,9 +128,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
   for (size_t i = 0; i < particles.size(); i++)
   {
-    double x = 0;
-    double y = 0;
-    double theta = 0;
 
     //Get every Landmark within sensor_range of current particle
     vector<LandmarkObs> predicted;
@@ -146,16 +144,44 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         landmark.y = y_lm;
         predicted.push_back(landmark);
       }
-      //Copy observation vector to be able to pass to dataAssociation
-      vector<LandmarkObs> obs_copy;
-      //Transform observation into map coordinates
-      obs_copy = TransformToMapCoords(particles[i], observations);
-      dataAssociation(predicted, obs_copy);
+    }
+    //Copy observation vector to be able to pass to dataAssociation
+    vector<LandmarkObs> obs_copy;
+    //Transform observation into map coordinates
+    obs_copy = TransformToMapCoords(particles[i], observations);
+    dataAssociation(predicted, obs_copy);
+
+    //Associate Particle
+    for (size_t o = 0; o < obs_copy.size(); o++)
+    {
+      particles[i].associations.push_back(obs_copy[o].id);
+      particles[i].sense_x.push_back(obs_copy[o].x);
+      particles[i].sense_y.push_back(obs_copy[o].y);
+    }
+
+    for (size_t j = 0; j < obs_copy.size(); j++)
+    {
+      LandmarkObs landmark = GetLandmarkByID(predicted, obs_copy[j].id);
+      particles[i].weight *= getWeight(obs_copy[j].x, obs_copy[j].y, landmark.x, landmark.y, std_landmark[0], std_landmark[1]);
     }
   }
 }
 
-vector<LandmarkObs> TransformToMapCoords(Particle particle, vector<LandmarkObs> observation)
+LandmarkObs ParticleFilter::GetLandmarkByID(vector<LandmarkObs> landmarks_predicted, int id)
+{
+  for (size_t i = 0; i < landmarks_predicted.size(); i++)
+  {
+    if (id == landmarks_predicted[i].id)
+    {
+      return landmarks_predicted[i];
+    }
+  }
+  std::cout << "No Landmark found!" << std::endl;
+  LandmarkObs empty;
+  return empty;
+}
+
+vector<LandmarkObs> ParticleFilter::TransformToMapCoords(Particle particle, vector<LandmarkObs> observation)
 {
   vector<LandmarkObs> mapped;
   if (observation.size() > 0)

@@ -110,6 +110,9 @@ public:
   std::string getAssociations(Particle best);
   std::string getSenseCoord(Particle best, std::string coord);
 
+  LandmarkObs GetLandmarkByID(std::vector<LandmarkObs> landmarks_predicted, int id);
+  std::vector<LandmarkObs> TransformToMapCoords(Particle particle, std::vector<LandmarkObs> observation);
+
   // Set of current particles
   std::vector<Particle> particles;
 
