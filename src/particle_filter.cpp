@@ -46,7 +46,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[])
     particles[i].x = dist_x(gen);
     particles[i].y = dist_y(gen);
     particles[i].theta = dist_theta(gen);
-    particles[i].weight = 1 / num_particles;
+    particles[i].weight = 1;
   }
 }
 
@@ -91,31 +91,19 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
-
-  //For any Particle
-  for (size_t i = 0; i < particles.size(); i++)
+  for (size_t o = 0; o < observations.size(); o++)
   {
-    double theta = particles[i].theta;
-    double x = particles[i].x;
-    double y = particles[i].y;
-    //Transform observations to map coords specific to current particle orientation
-    for (size_t o = 0; o < observations.size(); o++)
+    std::vector<double> temp_distances;
+    //Calculate the distance between current observation and landmarks
+    for (size_t j = 0; j < predicted.size(); j++)
     {
-      observations[o].x = cos(theta) * observations[o].x - sin(theta) * observations[o].x + x;
-      observations[o].y = sin(theta) * observations[o].y + cos(theta) * observations[o].y + y;
-      std::vector<double> temp_distances;
-      //Calculate the distance between current observation and all landmarks
-      for (size_t j = 0; j < predicted.size(); j++)
-      {
-        float distance = sqrt(pow(observations[i].x - predicted[j].x, 2) + pow(observations[i].y - predicted[j].y, 2));
-        temp_distances.push_back(distance);
-      }
-      //Association step: Calculate minimum distance between current observation and all landmarks
-      int minElementIndex = std::min_element(temp_distances.begin(), temp_distances.end()) - temp_distances.begin();
-      int minElement = *std::min_element(temp_distances.begin(), temp_distances.end());
-      //Get id of associated landmark for current particle
-      particles[i].associations.push_back(predicted[minElementIndex].id);
+      double distance = dist(observations[o].x, observations[o].y, predicted[j].x, predicted[j].y);
+      temp_distances.push_back(distance);
     }
+    //Calculate minimum distance between current observation and landmarks
+    int index_nearest_landmark = std::min_element(temp_distances.begin(), temp_distances.end()) - temp_distances.begin();
+    //Set id of current observation to id of closest landmark
+    observations[o].id = predicted[index_nearest_landmark].id;
   }
 }
 
@@ -136,18 +124,56 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
+
   for (size_t i = 0; i < particles.size(); i++)
   {
-    for (size_t o = 0; o < observations.size(); o++)
+    double x = 0;
+    double y = 0;
+    double theta = 0;
+
+    //Get every Landmark within sensor_range of current particle
+    vector<LandmarkObs> predicted;
+    for (size_t m = 0; m < map_landmarks.landmark_list.size(); m++)
     {
-      //Get ID of first landmark which was associated with the observations
-      int id = particles[i].associations[o];
-      float mean_x = map_landmarks.landmark_list[id].x_f;
-      float mean_y = map_landmarks.landmark_list[id].y_f;
-      float std_x = std_landmark[0];
-      float std_y = std_landmark[1];
+      double x_lm = map_landmarks.landmark_list[m].x_f;
+      double y_lm = map_landmarks.landmark_list[m].y_f;
+      double distance = dist(x_lm, y_lm, particles[i].x, particles[i].y);
+      if (distance <= sensor_range)
+      {
+        LandmarkObs landmark;
+        landmark.id = m;
+        landmark.x = x_lm;
+        landmark.y = y_lm;
+        predicted.push_back(landmark);
+      }
+      //Copy observation vector to be able to pass to dataAssociation
+      vector<LandmarkObs> obs_copy;
+      //Transform observation into map coordinates
+      obs_copy = TransformToMapCoords(particles[i], observations);
+      dataAssociation(predicted, obs_copy);
     }
   }
+}
+
+vector<LandmarkObs> TransformToMapCoords(Particle particle, vector<LandmarkObs> observation)
+{
+  vector<LandmarkObs> mapped;
+  if (observation.size() > 0)
+  {
+    for (size_t o = 0; o < observation.size(); o++)
+    {
+      LandmarkObs landmark;
+      landmark.id = observation[o].id;
+      landmark.x = cos(particle.theta) * observation[o].x - sin(particle.theta) * observation[0].x + particle.x;
+      landmark.y = sin(particle.theta) * observation[o].y + cos(particle.theta) * observation[0].y + particle.y;
+      mapped.push_back(landmark);
+    }
+  }
+  else
+  {
+    return observation;
+  }
+  return mapped;
 }
 
 void ParticleFilter::resample()
