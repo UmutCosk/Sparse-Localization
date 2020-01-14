@@ -276,4 +276,30 @@ inline double getWeight(double x, double y, double ux, double uy, double sigx, d
   return faktor * pow(EULER, -(exp_x + exp_y));
 }
 
+inline std::vector<double> normalize_vector(std::vector<double> inputVector)
+{
+
+  //declare sum:
+  double sum = 0.0f;
+
+  //declare and resize output vector:
+  std::vector<double> outputVector;
+  outputVector.resize(inputVector.size());
+
+  //estimate the sum:
+  for (unsigned int i = 0; i < inputVector.size(); ++i)
+  {
+    sum += inputVector[i];
+  }
+
+  //normalize with sum:
+  for (unsigned int i = 0; i < inputVector.size(); ++i)
+  {
+    outputVector[i] = inputVector[i] / sum;
+  }
+
+  //return normalized vector:
+  return outputVector;
+}
+
 #endif // HELPER_FUNCTIONS_H_
