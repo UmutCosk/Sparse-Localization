@@ -136,6 +136,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   for (int i = 0; i < num_particles; i++)
   {
     //Init Clear
+    particles[i].weight = 1.0;
     particles[i].associations.clear();
     particles[i].sense_x.clear();
     particles[i].sense_y.clear();
@@ -182,13 +183,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
     weights.push_back(particles[i].weight);
   }
-  int index_best_particle = std::min_element(weights.begin(), weights.end()) - weights.begin();
-  Particle best = particles[index_best_particle];
-  for (uint i = 0; i < best.associations.size(); i++)
-  {
-    std::cout << best.associations[i] << std::endl;
-  }
-  std::cout << "______________________" << std::endl;
 }
 
 void ParticleFilter::resample()
@@ -200,10 +194,10 @@ void ParticleFilter::resample()
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
   vector<Particle> newParticles;
-  int index = rand() % (num_particles + 1); // 0-100
+  int index = rand() % (num_particles); // 0-100
   double beta = 0.0;
   double mw = *max_element(weights.begin(), weights.end());
-  weights = normalize_vector(weights);
+
   for (int i = 0; i < num_particles; i++)
   {
     particles[i].weight = weights[i];
@@ -216,20 +210,10 @@ void ParticleFilter::resample()
       beta -= weights[index];
       index = (index + 1) % num_particles;
     }
+    particles[index].id = i;
     newParticles.push_back(particles[index]);
-    newParticles[i].id = i;
   }
   particles = newParticles;
-  // weights.clear();
-  // for (int i = 0; i < num_particles; i++)
-  // {
-  //   weights.push_back(particles[i].weight);
-  // }
-  // weights = normalize_vector(weights);
-  // for (int i = 0; i < num_particles; i++)
-  // {
-  //   particles[i].weight = weights[i];
-  // }
 }
 
 LandmarkObs ParticleFilter::GetLandmarkByID(vector<LandmarkObs> landmarks_predicted, int id)
