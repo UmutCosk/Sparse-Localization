@@ -59,15 +59,6 @@ public:
                   double yaw_rate);
 
   /**
-   * dataAssociation Finds which observations correspond to which landmarks 
-   *   (likely by using a nearest-neighbors data association).
-   * @param predicted Vector of predicted landmark observations
-   * @param observations Vector of landmark observations
-   */
-  void dataAssociation(std::vector<LandmarkObs> predicted,
-                       std::vector<LandmarkObs> &observations);
-
-  /**
    * updateWeights Updates the weights for each particle based on the likelihood
    *   of the observed measurements. 
    * @param sensor_range Range [m] of sensor
@@ -92,9 +83,6 @@ public:
    * This can be a very useful debugging tool to make sure transformations 
    *   are correct and assocations correctly connected
    */
-  void SetAssociations(Particle &particle, const std::vector<int> &associations,
-                       const std::vector<double> &sense_x,
-                       const std::vector<double> &sense_y);
 
   /**
    * initialized Returns whether particle filter is initialized yet or not.
@@ -109,7 +97,6 @@ public:
    */
   std::string getAssociations(Particle best);
   std::string getSenseCoord(Particle best, std::string coord);
-  LandmarkObs GetLandmarkByID(std::vector<LandmarkObs> landmarks_predicted, int id);
   std::vector<LandmarkObs> TransformToMapCoords(Particle particle, std::vector<LandmarkObs> observation);
 
   // Set of current particles
