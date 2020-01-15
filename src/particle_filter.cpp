@@ -132,57 +132,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
-  weights.clear();
-  for (int i = 0; i < num_particles; i++)
-  {
-    //Init Clear
-    particles[i].weight = 1.0;
-    particles[i].associations.clear();
-    particles[i].sense_x.clear();
-    particles[i].sense_y.clear();
-
-    //Get every Landmark within sensor_range of current particle
-    vector<LandmarkObs> predicted;
-    for (size_t m = 0; m < map_landmarks.landmark_list.size(); m++)
-    {
-      double x_lm = map_landmarks.landmark_list[m].x_f;
-      double y_lm = map_landmarks.landmark_list[m].y_f;
-      double distance = dist(x_lm, y_lm, particles[i].x, particles[i].y);
-
-      // cout << "Sensor range: " << sensor_range << " Distance: " << distance << " to ID: " << map_landmarks.landmark_list[m].id_i << endl;
-
-      if (distance < sensor_range)
-      {
-        LandmarkObs landmark;
-        landmark.id = map_landmarks.landmark_list[m].id_i;
-        landmark.x = x_lm;
-        landmark.y = y_lm;
-        predicted.push_back(landmark);
-      }
-    }
-
-    //Copy observation vector to be able to pass to dataAssociation
-    vector<LandmarkObs> obs_copy;
-    //Transform observation into map coordinates
-    obs_copy = TransformToMapCoords(particles[i], observations);
-    dataAssociation(predicted, obs_copy);
-
-    //Associate Particle
-    for (size_t o = 0; o < obs_copy.size(); o++)
-    {
-      LandmarkObs landmark = GetLandmarkByID(predicted, obs_copy[o].id);
-      particles[i].associations.push_back(landmark.id);
-      particles[i].sense_x.push_back(landmark.x);
-      particles[i].sense_y.push_back(landmark.y);
-    }
-
-    for (size_t j = 0; j < obs_copy.size(); j++)
-    {
-      LandmarkObs landmark = GetLandmarkByID(predicted, obs_copy[j].id);
-      particles[i].weight *= getWeight(obs_copy[j].x, obs_copy[j].y, landmark.x, landmark.y, std_landmark[0], std_landmark[1]);
-    }
-    weights.push_back(particles[i].weight);
-  }
 }
 
 void ParticleFilter::resample()
@@ -197,7 +146,7 @@ void ParticleFilter::resample()
   int index = rand() % (num_particles); // 0-100
   double beta = 0.0;
   double mw = *max_element(weights.begin(), weights.end());
-
+  weights = normalize_vector(weights);
   for (int i = 0; i < num_particles; i++)
   {
     particles[i].weight = weights[i];
@@ -210,7 +159,7 @@ void ParticleFilter::resample()
       beta -= weights[index];
       index = (index + 1) % num_particles;
     }
-    particles[index].id = i;
+    particles[i].id = 1;
     newParticles.push_back(particles[index]);
   }
   particles = newParticles;
