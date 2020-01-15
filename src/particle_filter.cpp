@@ -65,13 +65,13 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     {
       particles[i].x += (velocity / yaw_rate) * (sin(theta + d_theta_t) - sin(theta));
       particles[i].y += (velocity / yaw_rate) * (-cos(theta + d_theta_t) + cos(theta));
+      particles[i].theta += d_theta_t;
     }
     else
     {
       particles[i].x += velocity * delta_t * cos(theta);
       particles[i].y += velocity * delta_t * sin(theta);
     }
-    particles[i].theta += d_theta_t;
 
     //Adding Noise
     normal_distribution<double> dist_x(particles[i].x, std_pos[0]);
@@ -199,28 +199,27 @@ void ParticleFilter::resample()
    * NOTE: You may find std::discrete_distribution helpful here.
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
-  // ParticleFilter newFilter;
-  // newFilter.particles.clear();
-  // int index = rand() % (num_particles + 1); // 0-100
-  // double beta = 0.0;
-  // double mw = *max_element(weights.begin(), weights.end());
-  // weights = normalize_vector(weights);
-  // for (int i = 0; i < num_particles; i++)
-  // {
-  //   particles[i].weight = weights[i];
-  // }
-  // for (int i = 0; i < num_particles; i++)
-  // {
-  //   beta += ((double)rand() / RAND_MAX) * 2.0 * mw;
-  //   while (beta > weights[index])
-  //   {
-  //     beta -= weights[index];
-  //     index = (index + 1) % num_particles;
-  //   }
-  //   newFilter.particles.push_back(particles[index]);
-  //   newFilter.particles[i].id = i;
-  // }
-  // particles = newFilter.particles;
+  vector<Particle> newParticles;
+  int index = rand() % (num_particles + 1); // 0-100
+  double beta = 0.0;
+  double mw = *max_element(weights.begin(), weights.end());
+  weights = normalize_vector(weights);
+  for (int i = 0; i < num_particles; i++)
+  {
+    particles[i].weight = weights[i];
+  }
+  for (int i = 0; i < num_particles; i++)
+  {
+    beta += ((double)rand() / RAND_MAX) * 2.0 * mw;
+    while (beta > weights[index])
+    {
+      beta -= weights[index];
+      index = (index + 1) % num_particles;
+    }
+    newParticles.push_back(particles[index]);
+    newParticles[i].id = i;
+  }
+  particles = newParticles;
   // weights.clear();
   // for (int i = 0; i < num_particles; i++)
   // {

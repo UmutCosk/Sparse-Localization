@@ -271,9 +271,9 @@ inline bool read_landmark_data(std::string filename,
 inline double getWeight(double x, double y, double ux, double uy, double sigx, double sigy)
 {
   double faktor = 1 / (2 * M_PI * sigx * sigy);
-  double exp_x = pow((x - ux), 2) / 2 * pow(sigx, 2);
-  double exp_y = pow((y - uy), 2) / 2 * pow(sigy, 2);
-  return faktor * pow(EULER, -(exp_x + exp_y));
+  double exp_x = pow((x - ux), 2) / (2 * pow(sigx, 2));
+  double exp_y = pow((y - uy), 2) / (2 * pow(sigy, 2));
+  return faktor * exp(-(exp_x + exp_y));
 }
 
 inline std::vector<double> normalize_vector(std::vector<double> inputVector)
